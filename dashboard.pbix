@@ -1,0 +1,36 @@
+=====================================================================
+POWER BI DAX MEASURES - HOUSEHOLD LOAD PROFILING PIPELINE
+=====================================================================
+
+1. TOTAL ENERGY CONSUMPTION (kWh)
+---------------------------------------------------------------------
+Total_Energy_kWh = SUM(KaggleEnergyLog[Total_Demand_kW])
+
+2. AVERAGE GRID VOLTAGE (V)
+---------------------------------------------------------------------
+Average_Voltage = AVERAGE(KaggleEnergyLog[Voltage])
+
+3. GRID POWER FACTOR (PF) - EFFICIENCY
+---------------------------------------------------------------------
+Power_Factor = 
+VAR ActivePower = SUM(KaggleEnergyLog[Global_active_power])
+VAR ReactivePower = SUM(KaggleEnergyLog[Global_reactive_power])
+VAR ApparentPower = SQRT(POWER(ActivePower, 2) + POWER(ReactivePower, 2))
+RETURN
+DIVIDE(ActivePower, ApparentPower, 1.0)
+
+4. ESTIMATED ELECTRICITY COST EXPENDITURE (INR)
+---------------------------------------------------------------------
+Estimated_Bill_INR = [Total_Energy_kWh] * 7
+
+5. DAY-OVER-DAY (DoD) CONSUMPTION DELTA %
+---------------------------------------------------------------------
+DoD_Consumption_Change_% = 
+VAR CurrentDay = [Total_Energy_kWh]
+VAR PreviousDay = 
+    CALCULATE(
+        [Total_Energy_kWh], 
+        DATEADD(KaggleEnergyLog[Date].[Date], -1, DAY)
+    )
+RETURN
+DIVIDE(CurrentDay - PreviousDay, PreviousDay, 0)
